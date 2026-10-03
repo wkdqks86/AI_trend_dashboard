@@ -6,7 +6,7 @@
 <title>AI 트렌드 위클리</title>
 <meta name="description" content="AI 실무 커뮤니티에서 나온 이야기를 주마다 정리한 대시보드">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <main class="wrap">
@@ -37,13 +37,13 @@
       <p class="hint">원 크기는 언급량, 세로 위치는 중요도예요. 오른쪽 아래일수록 많이 떠들었지만 덜 중요한 주제예요. 원을 누르면 옆 칸이 그 키워드로 걸러져요.</p>
     </section>
     <section class="card" aria-labelledby="h-flip">
-      <h2 id="h-flip">뒤집힌 판단 <span id="flipFilter"></span></h2>
+      <h2 id="h-flip">뒤집힌 판단 <span id="flipFilter"></span><span class="segs" id="tg-flips"></span></h2>
       <div id="flips"></div>
     </section>
   </div>
 
   <section class="card" aria-labelledby="h-core">
-    <h2 id="h-core">지금 유효한 핵심</h2>
+    <h2 id="h-core"><span id="h-core-title">지금 유효한 핵심</span><span class="segs" id="tg-core"></span></h2>
     <div id="core" class="cards"></div>
     <button id="coreMore" class="more" hidden>더 보기</button>
   </section>
@@ -67,11 +67,11 @@
 
   <div class="grid-2">
     <section class="card" aria-labelledby="h-git">
-      <h2 id="h-git">쓸 만한 깃 저장소</h2>
+      <h2 id="h-git">쓸 만한 깃 저장소<span class="segs" id="tg-repos"></span></h2>
       <ul id="repos" class="rows"></ul>
     </section>
     <section class="card" aria-labelledby="h-rumor">
-      <h2 id="h-rumor">루머 채점표</h2>
+      <h2 id="h-rumor">루머 채점표<span class="segs" id="tg-rumors"></span></h2>
       <p id="rumorSummary" class="muted small"></p>
       <ul id="rumors" class="rows"></ul>
     </section>
@@ -82,6 +82,6 @@
     <p id="generated"></p>
   </footer>
 </main>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

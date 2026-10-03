@@ -28,6 +28,16 @@
   const weeks = [...weekSet].sort();
   let wi = weeks.length - 1;
   let kwFilter = null;
+  // 칸마다 [이 주] / [전체] 전환
+  const mode = { core: "week", flips: "week", repos: "week", rumors: "week" };
+  function toggle(id, key, rerender) {
+    $(id).innerHTML = ["week", "all"]
+      .map((m) => `<button class="seg${mode[key] === m ? " on" : ""}" data-m="${m}" aria-pressed="${mode[key] === m}">${m === "week" ? "이 주" : "전체"}</button>`)
+      .join("");
+    $(id).querySelectorAll("button").forEach((b) => (b.onclick = () => { mode[key] = b.dataset.m; rerender(); }));
+  }
+  const weekEnd = (w) => addDays(w, 6);
+  const STATUS_BADGE = { 지나감: "지금은 지나감", "부분 유효": "지금은 일부만 유효", "판정 보류": "판정 보류" };
 
   function renderWeek() {
     const w = weeks[wi];
@@ -51,6 +61,9 @@
     renderFlips();
     renderTopics(w);
     renderVideos(w);
+    renderCore(w);
+    renderRepos(w);
+    renderRumors(w);
   }
 
   function renderMetrics(w) {
@@ -58,14 +71,18 @@
     const newNow = insights.filter((i) => inWeek(i.date, w)).length;
     const newPrev = insights.filter((i) => inWeek(i.date, prev)).length;
     const diff = newNow - newPrev;
-    const core = insights.filter((i) => i.status === "유효" && i.importance === 3).length;
+    const top = insights.filter((i) => inWeek(i.date, w) && i.importance === 3);
+    const stillValid = top.filter((i) => i.status === "유효").length;
     const passed = insights.filter((i) => inWeek(i.statusChangedAt, w) && (i.status === "지나감" || i.status === "부분 유효")).length;
-    const pending = insights.filter((i) => i.status === "판정 보류").length;
+    // 그 주 말 기준으로 결론이 안 나 있던 것: 지금도 보류이거나, 그 주 뒤에 결론이 난 것
+    const end = weekEnd(w);
+    const pendingAt = insights.filter((i) => i.date <= end && (i.status === "판정 보류" || (i.rumorResult && i.rumorResult !== "대기" && i.statusChangedAt > end)));
+    const pendingNew = pendingAt.filter((i) => inWeek(i.date, w)).length;
     const m = [
       ["새 인사이트", newNow, diff === 0 ? "지난주와 같음" : `지난주 대비 ${diff > 0 ? "+" : ""}${diff}`, diff > 0 ? "up" : diff < 0 ? "down" : ""],
-      ["지금 유효 ★★★", core, `전체 ${insights.length}개 중`, "", "h-core"],
-      ["이번 주 지나감", passed, "뒤집힌 판단 보기 ↓", "", "h-flip"],
-      ["판정 보류", pending, "루머 채점표 ↓", "", "h-rumor"],
+      ["이 주 핵심 ★★★", top.length, top.length ? `지금도 유효 ${stillValid}개` : "핵심 보기 ↓", "", "h-core"],
+      ["이 주 지나감", passed, "뒤집힌 판단 보기 ↓", "", "h-flip"],
+      ["판정 보류", pendingAt.length, pendingNew ? `이 주 새로 ${pendingNew}개` : "루머 채점표 ↓", "", "h-rumor"],
     ];
     $("metrics").innerHTML = m
       .map(([l, n, s, cls, jump]) => `<button class="metric" ${jump ? `data-jump="${jump}"` : "disabled"}><div class="label">${l}</div><div class="num">${n}</div><div class="sub ${cls}">${s}</div></button>`)
@@ -183,6 +200,9 @@
     let pairs = insights
       .filter((i) => i.replacedBy.length && (i.status === "지나감" || i.status === "부분 유효") && i.kind !== "루머·미검증")
       .flatMap((old) => old.replacedBy.map((id) => byId.get(id)).filter(Boolean).map((nw) => ({ old, nw })));
+    const w = weeks[wi];
+    toggle("tg-flips", "flips", renderFlips);
+    if (mode.flips === "week") pairs = pairs.filter(({ old, nw }) => inWeek(old.statusChangedAt || nw.date, w));
     if (kwFilter) pairs = pairs.filter(({ old, nw }) => old.keywords.includes(kwFilter) || nw.keywords.includes(kwFilter));
     pairs.sort((a, b) => (b.old.statusChangedAt ?? "").localeCompare(a.old.statusChangedAt ?? ""));
     $("flipFilter").innerHTML = kwFilter ? `<button class="chip" id="clearKw">${esc(kwFilter)} ✕</button>` : "";
@@ -193,17 +213,29 @@
           <div class="new">${esc(nw.title)}</div>
           <div class="meta">${md(old.statusChangedAt || nw.date)} · ${old.status === "부분 유효" ? "일부만 유효" : "지나감"}${old.keywords.length ? " · " + esc(old.keywords.join(", ")) : ""}</div>
         </div>`).join("")
-      : `<p class="empty">${kwFilter ? "이 키워드로 뒤집힌 판단은 아직 없어요." : "아직 뒤집힌 판단이 없어요."}</p>`;
+      : `<p class="empty">${mode.flips === "week" ? `${weekName(w)}에는 ` : ""}${kwFilter ? "이 키워드로 " : ""}뒤집힌 판단이 없어요.${mode.flips === "week" ? " [전체]에서 지난 기록을 볼 수 있어요." : ""}</p>`;
   }
 
   // ---------- 지금 유효한 핵심 ----------
-  function renderCore() {
-    const list = insights.filter((i) => i.status === "유효" && i.importance === 3);
-    let open = false;
+  let coreOpen = false;
+  function renderCore(w = weeks[wi]) {
+    toggle("tg-core", "core", () => { coreOpen = false; renderCore(); });
+    const week = mode.core === "week";
+    $("h-core-title").textContent = week ? `${weekName(w)} 핵심` : "지금 유효한 핵심";
+    // 이 주: 그 주에 나온 ★★★·★★ (지금 상태 배지 표시) / 전체: 지금도 유효한 ★★★
+    const list = week
+      ? insights.filter((i) => inWeek(i.date, w) && i.importance >= 2).sort((a, b) => b.importance - a.importance || b.date.localeCompare(a.date))
+      : insights.filter((i) => i.status === "유효" && i.importance === 3);
+    if (!list.length) {
+      $("core").innerHTML = `<p class="empty">${weekName(w)}에 정리된 핵심이 없어요. [전체]에서 지금 유효한 내용을 볼 수 있어요.</p>`;
+      $("coreMore").hidden = true;
+      return;
+    }
     const draw = () => {
+      const open = coreOpen;
       const shown = open ? list : list.slice(0, 6);
       $("core").innerHTML = shown.map((i) => `<article class="icard">
-          <div>${i.topics.slice(0, 2).map((t) => `<span class="tag">${esc(t)}</span>`).join(" ")}</div>
+          <div>${i.topics.slice(0, 2).map((t) => `<span class="tag">${esc(t)}</span>`).join(" ")}${week && STATUS_BADGE[i.status] ? ` <span class="tag warn">${STATUS_BADGE[i.status]}</span>` : ""}</div>
           <h3>${esc(i.title)}</h3>
           ${i.summary ? `<p>${esc(i.summary)}</p>` : ""}
           <div class="meta">${stars(i.importance)} · ${esc(i.kind ?? "")} · ${md(i.date)}</div>
@@ -211,7 +243,7 @@
       $("coreMore").hidden = list.length <= 6;
       $("coreMore").textContent = open ? "접기" : `더 보기 (${list.length - 6}개)`;
     };
-    $("coreMore").onclick = () => { open = !open; draw(); };
+    $("coreMore").onclick = () => { coreOpen = !coreOpen; draw(); };
     draw();
   }
 
@@ -278,9 +310,15 @@
   }
 
   // ---------- 깃 저장소 ----------
-  function renderRepos() {
-    const repos = links.filter((l) => l.kind === "깃허브")
+  function renderRepos(w = weeks[wi]) {
+    toggle("tg-repos", "repos", () => renderRepos());
+    const week = mode.repos === "week";
+    const repos = links.filter((l) => l.kind === "깃허브" && (!week || inWeek(l.date, w)))
       .sort((a, b) => b.importance - a.importance || (b.date ?? "").localeCompare(a.date ?? "")).slice(0, 8);
+    if (!repos.length) {
+      $("repos").innerHTML = `<li class="empty">${week ? `${weekName(w)}에 공유된 저장소가 없어요. [전체]에서 볼 수 있어요.` : "아직 없어요."}</li>`;
+      return;
+    }
     $("repos").innerHTML = repos.length
       ? repos.map((r) => {
           const name = (r.url.match(/github\.com\/([^/]+\/[^/#?]+)/) || [])[1] ?? r.title;
@@ -290,8 +328,11 @@
   }
 
   // ---------- 루머 채점표 ----------
-  function renderRumors() {
-    const list = insights.filter((i) => i.rumorResult);
+  function renderRumors(w = weeks[wi]) {
+    toggle("tg-rumors", "rumors", () => renderRumors());
+    const week = mode.rumors === "week";
+    // 이 주: 그 주에 나왔거나 그 주에 결론이 난 루머
+    const list = insights.filter((i) => i.rumorResult && (!week || inWeek(i.date, w) || inWeek(i.statusChangedAt, w)));
     const order = { 적중: 0, 빗나감: 0, 대기: 1 };
     list.sort((a, b) => order[a.rumorResult] - order[b.rumorResult] || (b.statusChangedAt ?? b.date).localeCompare(a.statusChangedAt ?? a.date));
     const n = (r) => list.filter((i) => i.rumorResult === r).length;
@@ -299,13 +340,10 @@
     const cls = { 적중: "ok", 빗나감: "bad", 대기: "wait" };
     $("rumors").innerHTML = list.length
       ? list.slice(0, 8).map((i) => `<li><span class="res ${cls[i.rumorResult]}">${i.rumorResult}</span><span class="body">${esc(i.title)}<span class="sub">${md(i.date)}</span></span></li>`).join("")
-      : `<li class="empty">아직 채점할 루머가 없어요.</li>`;
+      : `<li class="empty">${week ? `${weekName(w)}에 나오거나 결론 난 루머가 없어요.` : "아직 채점할 루머가 없어요."}</li>`;
   }
 
   // ---------- 시작 (상수 선언이 모두 끝난 뒤에 그린다) ----------
-  renderCore();
-  renderRepos();
-  renderRumors();
   $("generated").textContent = `마지막 갱신 ${new Date(data.generatedAt).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}`;
   $("prevWeek").onclick = () => { if (wi > 0) { wi--; renderWeek(); } };
   $("nextWeek").onclick = () => { if (wi < weeks.length - 1) { wi++; renderWeek(); } };
