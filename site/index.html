@@ -1,87 +1,72 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI 트렌드 위클리</title>
-<meta name="description" content="AI 실무 커뮤니티에서 나온 이야기를 주마다 정리한 대시보드">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=9">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>주간 AI 관측보 · AI WEEKLY</title>
+  <meta name="description" content="AI 실무 커뮤니티에서 건져 올린 신호와 판단을 기록하는 주간 관측보">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css?v=20261004-metrics-v1.2">
 </head>
 <body>
+<a class="skip-link" href="#briefing-section">브리핑으로 건너뛰기</a>
 <main class="wrap">
-  <header class="top">
-    <div>
-      <h1>AI 트렌드 위클리</h1>
-      <p class="muted" id="weekLabel">불러오는 중…</p>
+  <header class="masthead">
+    <div class="utility">
+      <a href="https://songedejoseph.tistory.com/">← 꿈과 이상 그리고 현실</a>
+      <div><span class="edition">WEEKLY OBSERVATIONS</span><button id="themeToggle" class="theme-toggle">밝은 배경</button></div>
     </div>
-    <nav class="weeknav" aria-label="주차 이동">
-      <button id="prevWeek" aria-label="지난 주">◂</button>
-      <span id="weekTitle"></span>
-      <button id="nextWeek" aria-label="다음 주">▸</button>
-    </nav>
+    <div class="title-row">
+      <div><p class="brand-en">AI WEEKLY <span>관찰 · 기록 · 다시 생각하기</span></p><h1>주간 AI 관측보<span class="title-dot">.</span></h1></div>
+      <p class="masthead-note">실무 커뮤니티에서 건져 올린<br>신호와 판단<span id="updatedAt" class="updated-at"></span></p>
+    </div>
+    <div class="issue-bar">
+      <p id="weekLabel" aria-live="polite">불러오는 중…</p><span id="issueState" class="issue-state"></span>
+      <nav class="weeknav" aria-label="주차 이동">
+        <button id="prevWeek" aria-label="지난 주">←</button>
+        <label class="sr-only" for="weekSelect">주차 선택</label><select id="weekSelect"></select>
+        <button id="nextWeek" aria-label="다음 주">→</button>
+      </nav>
+    </div>
   </header>
-
-  <section class="card briefing" aria-labelledby="h-brief">
-    <h2 id="h-brief">이번 주 3줄 브리핑</h2>
-    <ol id="briefing"></ol>
-  </section>
-
-  <section class="metrics" id="metrics" aria-label="이번 주 숫자"></section>
-
-  <div class="grid-2">
-    <section class="card" aria-labelledby="h-kw">
-      <h2 id="h-kw">키워드 지도</h2>
-      <div id="kwmap" class="kwmap"></div>
-      <div class="legend" id="kwlegend"></div>
-      <p class="hint">원 크기는 언급량, 세로 위치는 중요도예요. 오른쪽 아래일수록 많이 떠들었지만 덜 중요한 주제예요. 원을 누르면 옆 칸이 그 키워드로 걸러져요.</p>
+  <nav class="section-nav" aria-label="관측보 목차"><a href="#briefing-section">브리핑</a><a href="#core-section">핵심 기록</a><a href="#flow-section">흐름 관측</a><a href="#judgment-section">판단 추적</a><a href="#land-section">도구 메모</a><a href="#library-section">자료실</a></nav>
+  <div class="newspaper">
+    <section class="front-page" id="briefing-section" aria-labelledby="h-brief">
+      <div class="briefing"><div class="section-caption"><span>01 / THE BRIEF</span><span id="briefingPeriod"></span></div><h2 id="h-brief">이번 주, 기억할 세 가지</h2><ol id="briefing"></ol></div>
+      <aside class="numbers-desk"><p class="section-caption">BY THE NUMBERS</p><section class="metrics" id="metrics" aria-label="기록 집계"></section><p class="hint">커뮤니티 정리 기록 기준</p></aside>
     </section>
-    <section class="card" aria-labelledby="h-flip">
-      <h2 id="h-flip">뒤집힌 판단 <span id="flipFilter"></span><span class="segs" id="tg-flips"></span></h2>
-      <div id="flips"></div>
+    <section class="sheet-section" id="core-section" aria-labelledby="h-core">
+      <div class="section-caption"><span>02 / EDITOR’S PICKS</span><span id="coreCount"></span></div>
+      <div class="section-heading"><h2 id="h-core"><span id="h-core-title">핵심 기록</span></h2><span class="segs" id="tg-core"></span></div>
+      <p class="section-note">별점은 정리 기준의 중요도, 상태는 마지막 갱신 시점 기준입니다.</p>
+      <div id="core" class="cards"></div><button id="coreMore" class="more" hidden>더 보기</button>
     </section>
+    <section class="sheet-section" id="flow-section" aria-labelledby="h-flow">
+      <div class="section-caption"><span>03 / SIGNALS & TRENDS</span><span>대화 속에서 읽는 흐름</span></div><h2 id="h-flow">흐름 관측</h2>
+      <div class="grid-2 flow-grid">
+        <section class="desk" aria-labelledby="h-kw"><h3 id="h-kw">키워드 지도</h3><div id="kwmap" class="kwmap"></div><div class="legend" id="kwlegend"></div><p class="hint">원 크기와 가로 위치는 언급량, 세로 위치는 기록의 평균 중요도입니다. 겹침을 피하려고 위치가 조금 조정됩니다.</p><a id="keywordJump" class="text-link" href="#judgment-section" hidden>이 키워드의 판단 추적 보기 ↓</a></section>
+        <section class="desk topic-desk" aria-labelledby="h-topic"><p class="small-kicker">A SIX-WEEK VIEW</p><h3 id="h-topic">주차별 주제 비중</h3><p class="section-note">어떤 이야기가 늘고, 무엇이 남았을까.</p><div id="topics" class="topics"></div><div class="legend" id="topicLegend"></div><p class="hint">한 기록에 여러 주제가 포함될 수 있습니다.</p></section>
+      </div>
+    </section>
+    <section class="sheet-section" id="judgment-section" aria-labelledby="h-judgment">
+      <div class="section-caption"><span>04 / THE FOLLOW-UP</span><span>결론보다, 바뀐 이유를 기록하기</span></div><h2 id="h-judgment">판단 추적</h2>
+      <div class="grid-2">
+        <section class="desk" aria-labelledby="h-flip"><div class="desk-heading"><h3 id="h-flip">뒤집힌 판단</h3><span class="segs" id="tg-flips"></span></div><div id="flipFilter"></div><div id="flips"></div></section>
+        <section class="desk" aria-labelledby="h-rumor"><div class="desk-heading"><h3 id="h-rumor">루머 채점표</h3><span class="segs" id="tg-rumors"></span></div><p id="rumorSummary" class="muted small"></p><ul id="rumors" class="rows"></ul><p class="hint">공식 사실 검증이 아닌, 정리 기록에 저장된 판정입니다.</p></section>
+      </div>
+    </section>
+    <section class="sheet-section" id="land-section" aria-labelledby="h-land"><div class="section-caption"><span>05 / FIELD MEMOS</span><span id="landPeriod"></span></div><h2 id="h-land">모델·요금제 메모</h2><p class="section-note">선택한 주에 정리한 도구와 사용 관점입니다.</p><div id="landscape" class="land"></div></section>
+    <section class="sheet-section" id="library-section" aria-labelledby="h-library">
+      <div class="section-caption"><span>06 / THE READING ROOM</span><span>더 읽고, 직접 써 보기</span></div><h2 id="h-library">자료실</h2>
+      <div class="desk-heading video-heading"><h3 id="h-video">추천 영상</h3><span class="segs" id="tg-videos"></span></div><div id="videos" class="videos"></div>
+      <details class="video-more" id="videoMoreWrap"><summary>함께 볼 영상 더 보기 <span id="videoRestCount"></span></summary><div id="videoMore"></div></details>
+      <section class="repo-desk" aria-labelledby="h-git"><div class="desk-heading"><h3 id="h-git">쓸 만한 GitHub 자료</h3><span class="segs" id="tg-repos"></span></div><ul id="repos" class="rows repo-list"></ul></section>
+    </section>
+    <footer class="foot"><div><p class="footer-brand">AI WEEKLY / 주간 AI 관측보</p><p>AI 실무 커뮤니티 대화를 요약한 개인 기록입니다.<br>개인을 알아볼 수 있는 정보는 제외하고 실었습니다.</p></div><div><p id="generated"></p><a href="https://songedejoseph.tistory.com/">꿈과 이상 그리고 현실 ↗</a><p class="closing">다음 주에도, 관찰은 계속됩니다.</p></div></footer>
   </div>
-
-  <section class="card" aria-labelledby="h-core">
-    <h2 id="h-core"><span id="h-core-title">지금 유효한 핵심</span><span class="segs" id="tg-core"></span></h2>
-    <div id="core" class="cards"></div>
-    <button id="coreMore" class="more" hidden>더 보기</button>
-  </section>
-
-  <section class="card" aria-labelledby="h-land">
-    <h2 id="h-land">지금의 모델·요금제 지형도</h2>
-    <div id="landscape" class="land"></div>
-  </section>
-
-  <section class="card compact" aria-labelledby="h-topic">
-    <h2 id="h-topic">주차별 주제 비중</h2>
-    <div id="topics" class="topics"></div>
-    <div class="legend" id="topicLegend"></div>
-  </section>
-
-  <section class="card" aria-labelledby="h-video">
-    <h2 id="h-video">추천 영상</h2>
-    <div id="videos" class="videos"></div>
-    <div id="videoMore" class="video-more"></div>
-  </section>
-
-  <div class="grid-2">
-    <section class="card" aria-labelledby="h-git">
-      <h2 id="h-git">쓸 만한 깃 저장소<span class="segs" id="tg-repos"></span></h2>
-      <ul id="repos" class="rows"></ul>
-    </section>
-    <section class="card" aria-labelledby="h-rumor">
-      <h2 id="h-rumor">루머 채점표<span class="segs" id="tg-rumors"></span></h2>
-      <p id="rumorSummary" class="muted small"></p>
-      <ul id="rumors" class="rows"></ul>
-    </section>
-  </div>
-
-  <footer class="foot muted small">
-    <p>AI 실무 커뮤니티 대화를 요약했어요. 개인을 알아볼 수 있는 정보는 빼고 실었어요.</p>
-    <p id="generated"></p>
-  </footer>
 </main>
-<script src="app.js?v=9"></script>
+<!-- 배포할 때마다 생성되는 최신 data.json을 읽습니다. -->
+<script src="app.js?v=20261004-metrics-v1.2"></script>
 </body>
 </html>

@@ -16,7 +16,11 @@
 
   let data;
   try {
-    data = await (await fetch("data.json", { cache: "no-store" })).json();
+    // Actions가 노션에서 생성한 최신 공개 데이터를 매번 읽습니다.
+    // 응답에 문제가 있으면 아래 catch에서 사용자에게 안내합니다.
+    const response = await fetch("data.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("데이터 응답 오류");
+    data = await response.json();
   } catch (e) {
     $("weekLabel").textContent = "데이터를 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.";
     return;
@@ -26,13 +30,17 @@
 
   const weekSet = new Set([...briefings.map((b) => b.week), ...keywordCounts.map((k) => k.week)]);
   const weeks = [...weekSet].sort();
+  if (!weeks.length) {
+    $("weekLabel").textContent = "아직 정리된 주간 기록이 없습니다.";
+    return;
+  }
   let wi = weeks.length - 1;
   let kwFilter = null;
   // 칸마다 [이 주] / [전체] 전환
-  const mode = { core: "week", flips: "week", repos: "week", rumors: "week" };
+  const mode = { core: "week", flips: "week", repos: "week", rumors: "week", videos: "week" };
   function toggle(id, key, rerender) {
     $(id).innerHTML = ["week", "all"]
-      .map((m) => `<button class="seg${mode[key] === m ? " on" : ""}" data-m="${m}" aria-pressed="${mode[key] === m}">${m === "week" ? "이 주" : "전체"}</button>`)
+      .map((m) => `<button class="seg${mode[key] === m ? " on" : ""}" data-m="${m}" aria-pressed="${mode[key] === m}">${m === "week" ? "선택 주" : key === "core" ? "현재 유효" : "전체"}</button>`)
       .join("");
     $(id).querySelectorAll("button").forEach((b) => (b.onclick = () => { mode[key] = b.dataset.m; rerender(); }));
   }
@@ -42,8 +50,13 @@
   function renderWeek() {
     const w = weeks[wi];
     const b = briefings.find((x) => x.week === w);
-    $("weekTitle").textContent = weekName(w);
-    $("weekLabel").textContent = `${md(w)} ~ ${md(addDays(w, 6))}${wi === weeks.length - 1 ? " · 진행 중인 주" : ""}`;
+    $("weekSelect").value = w;
+    $("weekLabel").textContent = `${w.replaceAll("-", ".")} — ${weekEnd(w).replaceAll("-", ".")}`;
+    const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
+    const partial = keywordCounts.some((k) => k.week === w && !k.final);
+    $("issueState").textContent = today >= w && today <= weekEnd(w) ? "진행 중인 주" : partial ? "부분 집계 기록" : "지난 주 기록";
+    $("briefingPeriod").textContent = weekName(w);
+    $("landPeriod").textContent = `${md(w)} ~ ${md(weekEnd(w))} 기록`;
     $("prevWeek").disabled = wi === 0;
     $("nextWeek").disabled = wi === weeks.length - 1;
 
@@ -74,18 +87,20 @@
     const top = insights.filter((i) => inWeek(i.date, w) && i.importance === 3);
     const stillValid = top.filter((i) => i.status === "유효").length;
     const passed = insights.filter((i) => inWeek(i.statusChangedAt, w) && (i.status === "지나감" || i.status === "부분 유효")).length;
-    // 그 주 말 기준으로 결론이 안 나 있던 것: 지금도 보류이거나, 그 주 뒤에 결론이 난 것
+    // 과거 상태를 복원할 이력이 없으므로, 현재 상태라는 기준을 분명히 표시합니다.
     const end = weekEnd(w);
-    const pendingAt = insights.filter((i) => i.date <= end && (i.status === "판정 보류" || (i.rumorResult && i.rumorResult !== "대기" && i.statusChangedAt > end)));
-    const pendingNew = pendingAt.filter((i) => inWeek(i.date, w)).length;
+    const pendingAt = insights.filter((i) => i.date <= end && i.status === "판정 보류");
+    const partial = keywordCounts.some((k) => k.week === w && !k.final);
+    // 설명을 의미 단위로 나누어, 좁은 칸에서도 단어 중간이 끊기지 않게 합니다.
+    // 각 칸을 '이름 → 숫자 → 설명' 순서의 동일한 구조로 표시합니다.
     const m = [
-      ["새 인사이트", newNow, diff === 0 ? "지난주와 같음" : `지난주 대비 ${diff > 0 ? "+" : ""}${diff}`, diff > 0 ? "up" : diff < 0 ? "down" : ""],
-      ["이 주 핵심 ★★★", top.length, top.length ? `지금도 유효 ${stillValid}개` : "핵심 보기 ↓", "", "h-core"],
-      ["이 주 지나감", passed, "뒤집힌 판단 보기 ↓", "", "h-flip"],
-      ["판정 보류", pendingAt.length, pendingNew ? `이 주 새로 ${pendingNew}개` : "루머 채점표 ↓", "", "h-rumor"],
+      ["새 인사이트", newNow, partial ? ["부분 집계", "전주 비교 보류"] : [!weeks.includes(prev) ? "이전 주 집계 없음" : diff === 0 ? "지난주와 같음" : `지난주 대비 ${diff > 0 ? "+" : ""}${diff}`], partial || !weeks.includes(prev) ? "" : diff > 0 ? "up" : diff < 0 ? "down" : ""],
+      ["이 주 핵심 ★★★", top.length, [top.length ? `지금도 유효 ${stillValid}개` : "핵심 보기 ↓"], "", "h-core"],
+      ["판단 변경", passed, ["현재 상태 기준", "지나감·부분 유효"], "", "h-flip"],
+      ["누적 보류", pendingAt.length, ["선택 주까지 작성", "현재 상태 기준"], ""],
     ];
     $("metrics").innerHTML = m
-      .map(([l, n, s, cls, jump]) => `<button class="metric" ${jump ? `data-jump="${jump}"` : "disabled"}><div class="label">${l}</div><div class="num">${n}</div><div class="sub ${cls}">${s}</div></button>`)
+      .map(([label, count, lines, statusClass, jump]) => `<${jump ? "button" : "div"} class="metric" ${jump ? `data-jump="${jump}"` : ""}><div class="label">${esc(label)}</div><div class="num">${count}</div><div class="sub ${statusClass}">${lines.map((line) => `<span>${esc(line)}</span>`).join("")}</div></${jump ? "button" : "div"}>`)
       .join("");
     $("metrics").querySelectorAll("[data-jump]").forEach((el) => (el.onclick = () => $(el.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" })));
   }
@@ -103,12 +118,14 @@
   function importanceOf(k, w) {
     const from = addDays(w, -27), to = addDays(w, 6);
     let pool = insights.filter((i) => i.keywords.includes(k) && i.status !== "지나감" && i.date >= from && i.date <= to);
-    if (!pool.length) pool = insights.filter((i) => i.keywords.includes(k));
+    if (!pool.length) pool = insights.filter((i) => i.keywords.includes(k) && i.date <= to);
     if (!pool.length) return null;
     return pool.reduce((s, i) => s + i.importance, 0) / pool.length;
   }
 
   function renderKeywordMap(w) {
+    $("keywordJump").hidden = !kwFilter;
+    $("keywordJump").textContent = kwFilter ? `${kwFilter}의 판단 추적 보기 ↓` : "";
     const cur = keywordCounts.filter((k) => k.week === w);
     const prevMap = new Map(keywordCounts.filter((k) => k.week === addDays(w, -7)).map((k) => [k.keyword, k.count]));
     const partial = cur.some((k) => !k.final);
@@ -122,6 +139,11 @@
       return;
     }
     const W = 520, H = 380, L = 44, R = 24, T = 30, B = 36;
+    // 글자 크기를 바꿀 때 겹침 계산도 같은 기준으로 바꿔야 합니다.
+    // 13 → 11.5로 약 12% 줄이고, 원과 글자 사이 간격은 4 → 7로 늘립니다.
+    const LABEL_FONT_SIZE = 11.5;
+    const LABEL_GAP = 7;
+    const TREND_WIDTH_ALLOWANCE = 24;
     const counts = pts.map((p) => p.count);
     // 평균 중요도는 대개 2~3 사이라 아래쪽이 비지 않게 범위를 데이터에 맞춘다
     const yMin = Math.max(1, Math.min(...pts.map((p) => p.imp)) - 0.2);
@@ -130,12 +152,16 @@
     const x = (c) => L + 24 + (hi === lo ? 0.5 : (Math.log(c) - lo) / (hi - lo)) * (W - L - R - 48);
     const y = (v) => T + ((3 - v) / (3 - yMin)) * (H - T - B);
     const r = (c) => 8 + (hi === lo ? 0.5 : (Math.log(c) - lo) / (hi - lo)) * 12;
-    // 라벨 글자 폭을 대략 잡는다 (한글 14px, 영문·숫자 8px)
-    const labelW = (s) => [...s].reduce((w, ch) => w + (/[가-힣]/.test(ch) ? 14 : 8), 0) + 16;
+    // 한글은 대략 글자 크기만큼, 영문은 그 60%만큼의 가로 폭을 차지합니다.
+    // 끝에 붙는 화살표나 '신규' 표시가 겹치지 않도록 여유 폭도 더합니다.
+    const labelW = (s) => [...s].reduce(
+      (width, character) => width + LABEL_FONT_SIZE * (/[가-힣]/.test(character) ? 1 : 0.6),
+      0,
+    ) + TREND_WIDTH_ALLOWANCE;
     pts.forEach((p) => {
       p.cx = x(p.count); p.cy = y(p.imp); p.r = r(p.count); p.ty = p.cy;
       p.hw = Math.max(p.r, labelW(p.keyword) / 2); // 상자 반폭
-      p.top = p.r + 20; // 원 중심에서 라벨 윗단까지
+      p.top = p.r + LABEL_GAP + LABEL_FONT_SIZE + 4; // 원과 글자를 합친 상자의 윗쪽 범위
     });
     // 원+라벨 상자가 겹치면 덜 겹친 축으로 밀어내고, 원래 높이(중요도) 쪽으로 조금씩 되돌린다
     for (let it = 0; it < 300; it++) {
@@ -177,11 +203,12 @@
         const [, g] = groupOf(p.keyword);
         const on = kwFilter === p.keyword ? " on" : "";
         const tip = `${p.keyword} · 언급 ${p.count}${p.prev !== undefined ? ` (지난주 ${p.prev})` : ""} · 평균 중요도 ${p.imp.toFixed(1)}`;
-        return `<g><circle class="bubble${on}" data-k="${esc(p.keyword)}" cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="${g.color}"><title>${esc(tip)}</title></circle>
-          <text class="lab" x="${p.cx}" y="${p.cy - p.r - 4}" text-anchor="middle">${esc(p.keyword)}${trend(p)}</text></g>`;
+        return `<g><circle class="bubble${on}" role="button" tabindex="0" aria-label="${esc(tip)} · 판단 추적 필터" aria-pressed="${Boolean(on)}" data-k="${esc(p.keyword)}" cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="${g.color}"><title>${esc(tip)}</title></circle>
+          <text class="lab" x="${p.cx}" y="${p.cy - p.r - LABEL_GAP}" text-anchor="middle">${esc(p.keyword)}${trend(p)}</text></g>`;
       })
       .join("");
-    $("kwmap").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="키워드별 언급량과 중요도">
+    $("kwmap").innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="--keyword-label-size:${LABEL_FONT_SIZE}px" role="group" aria-label="키워드별 언급량과 중요도">
+      <text class="axis-title" x="${L}" y="14">평균 중요도</text>
       ${grid}
       <line class="axis" x1="${L}" x2="${W - R}" y1="${H - B + 6}" y2="${H - B + 6}"/>
       <text class="axis-label" x="${W - R}" y="${H - 8}" text-anchor="end">언급량 많음 →${partial ? " (이번 주는 집계 중)" : ""}</text>
@@ -191,6 +218,13 @@
         kwFilter = kwFilter === el.dataset.k ? null : el.dataset.k;
         renderKeywordMap(weeks[wi]);
         renderFlips();
+      };
+      el.onkeydown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          el.onclick();
+          $("kwmap").querySelector(`[data-k="${CSS.escape(el.dataset.k)}"]`)?.focus();
+        }
       };
     });
   }
@@ -225,9 +259,10 @@
     // 이 주: 그 주에 나온 ★★★·★★ (지금 상태 배지 표시) / 전체: 지금도 유효한 ★★★
     const list = week
       ? insights.filter((i) => inWeek(i.date, w) && i.importance >= 2).sort((a, b) => b.importance - a.importance || b.date.localeCompare(a.date))
-      : insights.filter((i) => i.status === "유효" && i.importance === 3);
+      : insights.filter((i) => i.status === "유효" && i.importance === 3).sort((a, b) => b.date.localeCompare(a.date));
+    $("coreCount").textContent = `${list.length}개 기록`;
     if (!list.length) {
-      $("core").innerHTML = `<p class="empty">${weekName(w)}에 정리된 핵심이 없어요. [전체]에서 지금 유효한 내용을 볼 수 있어요.</p>`;
+      $("core").innerHTML = `<p class="empty">정리된 핵심이 없어요. [현재 유효]에서 다른 기록을 볼 수 있어요.</p>`;
       $("coreMore").hidden = true;
       return;
     }
@@ -237,7 +272,7 @@
       $("core").innerHTML = shown.map((i) => `<article class="icard">
           <div>${i.topics.slice(0, 2).map((t) => `<span class="tag">${esc(t)}</span>`).join(" ")}${week && STATUS_BADGE[i.status] ? ` <span class="tag warn">${STATUS_BADGE[i.status]}</span>` : ""}</div>
           <h3>${esc(i.title)}</h3>
-          ${i.summary ? `<p>${esc(i.summary)}</p>` : ""}
+          ${i.summary ? `<p>${esc(i.summary.length > 100 ? i.summary.slice(0, 100).trimEnd() + "…" : i.summary)}</p>${i.summary.length > 100 ? `<details class="story-detail"><summary>기록 전체 읽기</summary><p>${esc(i.summary)}</p></details>` : ""}` : ""}
           <div class="meta">${stars(i.importance)} · ${esc(i.kind ?? "")} · ${md(i.date)}</div>
         </article>`).join("");
       $("coreMore").hidden = list.length <= 6;
@@ -278,14 +313,19 @@
     return m ? m[1] : null;
   }
   // 선택한 주에 공유된 영상: 「대시보드 노출」 → 중요도 → 최신 순으로 3개, 나머지는 제목만
-  function renderVideos(w) {
-    const all = links.filter((l) => l.kind === "영상" && ytId(l.url) && inWeek(l.date, w))
+  function renderVideos(w = weeks[wi]) {
+    toggle("tg-videos", "videos", () => renderVideos());
+    const week = mode.videos === "week";
+    const all = links.filter((l) => l.kind === "영상" && ytId(l.url) && (!week || inWeek(l.date, w)))
       .sort((a, b) => b.featured - a.featured || b.importance - a.importance || (b.date ?? "").localeCompare(a.date ?? ""));
     const vids = all.slice(0, 3);
     const rest = all.slice(3);
-    $("h-video").textContent = `${weekName(w)} 추천 영상`;
+    $("h-video").textContent = week ? `${weekName(w)} 추천 영상` : "전체 추천 영상";
+    $("videoMoreWrap").hidden = !rest.length;
+    $("videoMoreWrap").open = false;
+    $("videoRestCount").textContent = `(${rest.length})`;
     $("videoMore").innerHTML = rest.length
-      ? `<p class="small muted">이 주에 공유된 다른 영상</p><ul class="rows">${rest.map((v) => `<li><span class="body"><a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.title)}</a><span class="sub">${esc(v.reason)}</span></span></li>`).join("")}</ul>`
+      ? `<ul class="rows">${rest.map((v) => `<li><span class="body"><a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.title)}</a><span class="sub">${esc(v.reason)}</span></span></li>`).join("")}</ul>`
       : "";
     if (!vids.length) {
       $("videos").innerHTML = `<p class="empty">이 주에는 공유된 영상이 없어요.</p>`;
@@ -344,8 +384,28 @@
   }
 
   // ---------- 시작 (상수 선언이 모두 끝난 뒤에 그린다) ----------
-  $("generated").textContent = `마지막 갱신 ${new Date(data.generatedAt).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}`;
-  $("prevWeek").onclick = () => { if (wi > 0) { wi--; renderWeek(); } };
-  $("nextWeek").onclick = () => { if (wi < weeks.length - 1) { wi++; renderWeek(); } };
+  $("generated").textContent = `데이터 갱신 ${new Date(data.generatedAt).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Seoul" })} (한국 시간)`;
+  $("updatedAt").textContent = new Date(data.generatedAt).toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Seoul" }) + " 갱신";
+  $("weekSelect").innerHTML = [...weeks].reverse().map((w) => `<option value="${w}">${weekName(w)} · ${md(w)}–${md(weekEnd(w))}</option>`).join("");
+  // 주차를 바꾸면 이전 키워드 필터와 펼친 목록을 초기화합니다.
+  function changeWeek(index) {
+    wi = index;
+    kwFilter = null;
+    coreOpen = false;
+    renderWeek();
+  }
+  $("prevWeek").onclick = () => { if (wi > 0) changeWeek(wi - 1); };
+  $("nextWeek").onclick = () => { if (wi < weeks.length - 1) changeWeek(wi + 1); };
+  $("weekSelect").onchange = (event) => changeWeek(weeks.indexOf(event.target.value));
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    $("themeToggle").textContent = theme === "dark" ? "밝은 배경" : "어두운 배경";
+  }
+  try { setTheme(localStorage.getItem("ai-weekly-theme") === "light" ? "light" : "dark"); } catch { setTheme("dark"); }
+  $("themeToggle").onclick = () => {
+    const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    setTheme(theme);
+    try { localStorage.setItem("ai-weekly-theme", theme); } catch { /* 파일 미리보기에서 저장이 제한되어도 화면은 변경합니다. */ }
+  };
   renderWeek();
 })();
