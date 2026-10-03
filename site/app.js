@@ -50,6 +50,7 @@
     renderKeywordMap(w);
     renderFlips();
     renderTopics(w);
+    renderVideos(w);
   }
 
   function renderMetrics(w) {
@@ -244,11 +245,18 @@
     const m = u.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/live\/|\/embed\/)([\w-]{11})/);
     return m ? m[1] : null;
   }
-  function renderVideos() {
-    const vids = links.filter((l) => l.kind === "영상" && l.featured && ytId(l.url))
-      .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")).slice(0, 3);
+  // 선택한 주에 공유된 영상: 「대시보드 노출」 → 중요도 → 최신 순으로 3개, 나머지는 제목만
+  function renderVideos(w) {
+    const all = links.filter((l) => l.kind === "영상" && ytId(l.url) && inWeek(l.date, w))
+      .sort((a, b) => b.featured - a.featured || b.importance - a.importance || (b.date ?? "").localeCompare(a.date ?? ""));
+    const vids = all.slice(0, 3);
+    const rest = all.slice(3);
+    $("h-video").textContent = `${weekName(w)} 추천 영상`;
+    $("videoMore").innerHTML = rest.length
+      ? `<p class="small muted">이 주에 공유된 다른 영상</p><ul class="rows">${rest.map((v) => `<li><span class="body"><a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.title)}</a><span class="sub">${esc(v.reason)}</span></span></li>`).join("")}</ul>`
+      : "";
     if (!vids.length) {
-      $("videos").innerHTML = `<p class="empty">추천 영상이 아직 없어요.</p>`;
+      $("videos").innerHTML = `<p class="empty">이 주에는 공유된 영상이 없어요.</p>`;
       return;
     }
     $("videos").innerHTML = vids.map((v) => {
@@ -296,7 +304,6 @@
 
   // ---------- 시작 (상수 선언이 모두 끝난 뒤에 그린다) ----------
   renderCore();
-  renderVideos();
   renderRepos();
   renderRumors();
   $("generated").textContent = `마지막 갱신 ${new Date(data.generatedAt).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}`;

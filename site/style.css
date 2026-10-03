@@ -121,6 +121,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .video h3 { font-size: 13.5px; font-weight: 600; margin: 8px 0 2px; line-height: 1.4; }
 .video p { font-size: 12.5px; color: var(--text-2); margin: 0; }
 
+.video-more:not(:empty) { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.video-more p { margin-bottom: 6px; }
 .rows { list-style: none; margin: 0; padding: 0; }
 .rows li { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; display: flex; gap: 8px; align-items: baseline; }
 .rows li:first-child { border-top: 0; padding-top: 0; }
