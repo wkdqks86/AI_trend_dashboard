@@ -1,0 +1,4 @@
+# 빌드 결과물은 저장소에 올리지 않는다 (Actions가 배포할 때만 만든다)
+site/data.json
+node_modules/
+.env

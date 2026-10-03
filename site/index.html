@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 트렌드 위클리</title>
+<meta name="description" content="AI 실무 커뮤니티에서 나온 이야기를 주마다 정리한 대시보드">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="style.css?v=7">
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1>AI 트렌드 위클리</h1>
+      <p class="muted" id="weekLabel">불러오는 중…</p>
+    </div>
+    <nav class="weeknav" aria-label="주차 이동">
+      <button id="prevWeek" aria-label="지난 주">◂</button>
+      <span id="weekTitle"></span>
+      <button id="nextWeek" aria-label="다음 주">▸</button>
+    </nav>
+  </header>
+
+  <section class="card briefing" aria-labelledby="h-brief">
+    <h2 id="h-brief">이번 주 3줄 브리핑</h2>
+    <ol id="briefing"></ol>
+  </section>
+
+  <section class="metrics" id="metrics" aria-label="이번 주 숫자"></section>
+
+  <div class="grid-2">
+    <section class="card" aria-labelledby="h-kw">
+      <h2 id="h-kw">키워드 지도</h2>
+      <div id="kwmap" class="kwmap"></div>
+      <div class="legend" id="kwlegend"></div>
+      <p class="hint">원 크기는 언급량, 세로 위치는 중요도예요. 오른쪽 아래일수록 많이 떠들었지만 덜 중요한 주제예요. 원을 누르면 옆 칸이 그 키워드로 걸러져요.</p>
+    </section>
+    <section class="card" aria-labelledby="h-flip">
+      <h2 id="h-flip">뒤집힌 판단 <span id="flipFilter"></span></h2>
+      <div id="flips"></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="h-core">
+    <h2 id="h-core">지금 유효한 핵심</h2>
+    <div id="core" class="cards"></div>
+    <button id="coreMore" class="more" hidden>더 보기</button>
+  </section>
+
+  <section class="card" aria-labelledby="h-land">
+    <h2 id="h-land">지금의 모델·요금제 지형도</h2>
+    <div id="landscape" class="land"></div>
+  </section>
+
+  <section class="card compact" aria-labelledby="h-topic">
+    <h2 id="h-topic">주차별 주제 비중</h2>
+    <div id="topics" class="topics"></div>
+    <div class="legend" id="topicLegend"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-video">
+    <h2 id="h-video">추천 영상</h2>
+    <div id="videos" class="videos"></div>
+  </section>
+
+  <div class="grid-2">
+    <section class="card" aria-labelledby="h-git">
+      <h2 id="h-git">쓸 만한 깃 저장소</h2>
+      <ul id="repos" class="rows"></ul>
+    </section>
+    <section class="card" aria-labelledby="h-rumor">
+      <h2 id="h-rumor">루머 채점표</h2>
+      <p id="rumorSummary" class="muted small"></p>
+      <ul id="rumors" class="rows"></ul>
+    </section>
+  </div>
+
+  <footer class="foot muted small">
+    <p>AI 실무 커뮤니티 대화를 요약했어요. 개인을 알아볼 수 있는 정보는 빼고 실었어요.</p>
+    <p id="generated"></p>
+  </footer>
+</main>
+<script src="app.js?v=7"></script>
+</body>
+</html>
