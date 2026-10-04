@@ -465,6 +465,15 @@ button.metric:hover .num {
   color:var(--wait)
 }
 
+.tag.echo {
+  background:var(--ok-bg);
+  color:var(--ok)
+}
+
+.news-desk .section-note .tag {
+  vertical-align:1px
+}
+
 .icard h3 {
   font-size:17px;
   line-height:1.7;
@@ -1402,4 +1411,227 @@ h2 {
 .metric .sub > span {
   /* 의미별 설명은 한 줄씩, 줄이 더 필요하면 공백을 기준으로 자연스럽게 나눕니다. */
   display: block;
+}
+
+/* v1.3 변화 중심 지면: 표시만 바꾸고 집계·주차 선택은 그대로 유지합니다. */
+.editorial-front {
+  display: block;
+}
+
+.brief-signals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.brief-signal {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-right: 22px;
+  border-right: 1px solid var(--border);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.brief-signal:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.brief-top, .change-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.brief-index {
+  font: italic 20px/1.4 Georgia, serif;
+  color: var(--brass);
+}
+
+.brief-signal h3 {
+  font-size: 20px;
+  margin: 14px 0 18px;
+}
+
+.brief-diagram {
+  flex: 1;
+  min-height: 165px;
+}
+
+.brief-items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.brief-items > div {
+  padding: 12px 4px;
+  text-align: center;
+  background: var(--surface-2);
+}
+
+.brief-items strong, .brief-items small {
+  display: block;
+}
+
+.brief-items strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.brief-items small, .brief-timeline p {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.brief-timeline {
+  margin-top: 18px;
+}
+
+.brief-timeline p {
+  margin: 0 0 5px;
+}
+
+.brief-limit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font: 400 32px/1.4 Georgia, serif;
+}
+
+.brief-limit > span:last-child {
+  color: var(--accent);
+}
+
+.editorial-arrow, .editorial-down {
+  color: var(--brass);
+  font: 400 22px/1.4 system-ui, sans-serif;
+}
+
+.editorial-down {
+  display: block;
+  padding: 6px 0;
+  text-align: center;
+}
+
+.brief-step {
+  padding: 13px 14px;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+
+.brief-step.is-focus, .change-after {
+  background: var(--accent-bg);
+}
+
+.brief-watch {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 기존 briefing li 장식은 원문 문단용이므로, 관찰 목록에서는 재설정합니다. */
+.briefing .brief-watch li {
+  position: static;
+  padding: 9px 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+}
+
+.briefing .brief-watch li:first-child { padding-top: 0; }
+.briefing .brief-watch li:last-child { border: 0; }
+.briefing .brief-watch li::before { content: none; }
+.brief-watch strong, .brief-watch span { display: block; }
+.brief-watch strong { font-weight: 600; }
+.brief-watch span { color: var(--wait); font-size: 13px; }
+.brief-takeaway { color: var(--text-2); font-size: 13px; margin: 16px 0 10px; }
+.brief-extract p { font-size: 14px; margin: 0 0 12px; }
+
+.editorial-detail {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.editorial-detail summary {
+  color: var(--accent);
+  padding: 7px 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.editorial-detail p {
+  padding: 12px;
+  margin: 9px 0;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+
+.editorial-front .numbers-desk {
+  margin-top: 24px;
+  padding: 20px 0 0;
+  border-left: 0;
+  border-top: 1px solid var(--border);
+}
+
+.editorial-front .numbers-desk > .section-caption {
+  display: none;
+}
+
+.editorial-front .metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.editorial-front .metric .label { min-height: 1.6em; }
+.editorial-front .metric .num { font-size: 35px; }
+.editorial-front .numbers-desk > .hint { margin-top: 10px; }
+
+.judgment-editorial {
+  display: grid;
+  gap: 30px;
+}
+
+.judgment-editorial .desk + .desk {
+  border-left: 0;
+  border-top: 1px solid var(--border);
+  padding: 24px 0 0;
+}
+
+.change-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.change-grid > .empty { grid-column: 1 / -1; }
+.change-card { border-top: 2px solid var(--accent); padding-top: 14px; min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.change-card h4 { font: 500 19px/1.5 var(--serif); margin: 10px 0 18px; }
+.change-label { color: var(--text-2); font-size: 12px; margin-bottom: 6px; }
+.change-before { color: var(--text-2); font-size: 14px; }
+.change-after { padding: 12px 14px; font-size: 15px; margin-bottom: 10px; }
+.change-status { color: var(--text-2); font-size: 12px; margin: 12px 0 0; }
+
+@media (max-width: 900px) {
+  /* 좁은 창에서는 3개 칸을 압축하지 않고 세로로 이어 읽습니다. */
+  .brief-signals { grid-template-columns: 1fr; gap: 22px; }
+  .brief-signal { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .brief-signal:last-child { border-bottom: 0; padding-bottom: 0; }
+  .brief-diagram { min-height: 0; }
+  .brief-items { max-width: 440px; }
+  .brief-limit { max-width: 440px; }
+  .brief-signal h3 { font-size: 20px; }
+}
+
+@media (max-width: 720px) {
+  .editorial-front .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .editorial-front .metric .label { min-height: 3.2em; }
+  .change-grid { grid-template-columns: 1fr; }
 }

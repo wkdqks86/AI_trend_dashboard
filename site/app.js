@@ -13,6 +13,7 @@
     return `${th.getUTCMonth() + 1}월 ${Math.ceil(th.getUTCDate() / 7)}주`;
   };
   const stars = (n) => "★".repeat(n);
+  const editorial = window.AIWeeklyEditorial;
 
   let data;
   try {
@@ -37,7 +38,7 @@
   let wi = weeks.length - 1;
   let kwFilter = null;
   // 칸마다 [이 주] / [전체] 전환
-  const mode = { core: "week", flips: "week", repos: "week", rumors: "week", videos: "week" };
+  const mode = { core: "week", flips: "week", repos: "week", rumors: "week", videos: "week", news: "week" };
   function toggle(id, key, rerender) {
     $(id).innerHTML = ["week", "all"]
       .map((m) => `<button class="seg${mode[key] === m ? " on" : ""}" data-m="${m}" aria-pressed="${mode[key] === m}">${m === "week" ? "선택 주" : key === "core" ? "현재 유효" : "전체"}</button>`)
@@ -60,9 +61,8 @@
     $("prevWeek").disabled = wi === 0;
     $("nextWeek").disabled = wi === weeks.length - 1;
 
-    $("briefing").innerHTML = b?.briefing.length
-      ? b.briefing.map((t) => `<li>${esc(t)}</li>`).join("")
-      : `<li class="empty">이 주에는 브리핑이 없어요.</li>`;
+    // 그래픽의 짧은 문구와 펼쳐 읽는 원문을 함께 만듭니다.
+    $("briefing").innerHTML = editorial.renderBriefing(b?.briefing ?? []);
 
     const land = b?.landscape ?? {};
     $("landscape").innerHTML = ["코딩 주력", "가성비", "로컬", "요금제"]
@@ -76,6 +76,7 @@
     renderVideos(w);
     renderCore(w);
     renderRepos(w);
+    renderNews(w);
     renderRumors(w);
   }
 
@@ -242,11 +243,7 @@
     $("flipFilter").innerHTML = kwFilter ? `<button class="chip" id="clearKw">${esc(kwFilter)} ✕</button>` : "";
     if ($("clearKw")) $("clearKw").onclick = () => { kwFilter = null; renderKeywordMap(weeks[wi]); renderFlips(); };
     $("flips").innerHTML = pairs.length
-      ? pairs.slice(0, 6).map(({ old, nw }) => `<div class="flip">
-          <div class="old">${esc(old.title)}</div>
-          <div class="new">${esc(nw.title)}</div>
-          <div class="meta">${md(old.statusChangedAt || nw.date)} · ${old.status === "부분 유효" ? "일부만 유효" : "지나감"}${old.keywords.length ? " · " + esc(old.keywords.join(", ")) : ""}</div>
-        </div>`).join("")
+      ? editorial.renderChanges(pairs.slice(0, 6))
       : `<p class="empty">${mode.flips === "week" ? `${weekName(w)}에는 ` : ""}${kwFilter ? "이 키워드로 " : ""}뒤집힌 판단이 없어요.${mode.flips === "week" ? " [전체]에서 지난 기록을 볼 수 있어요." : ""}</p>`;
   }
 
@@ -365,6 +362,19 @@
           return `<li><span class="tag">${stars(r.importance)}</span><span class="body"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(name)}</a><span class="sub">${esc(r.reason)}</span></span></li>`;
         }).join("")
       : `<li class="empty">아직 없어요.</li>`;
+  }
+
+  // ---------- 뉴스 레이더 (GeekNews Weekly에서 고른 글) ----------
+  // 위클리는 지난 한 주의 뉴스를 다음 주에 보내므로, 날짜는 그 뉴스가 다룬 주의 월요일로 저장되어 있습니다.
+  function renderNews(w = weeks[wi]) {
+    toggle("tg-news", "news", () => renderNews());
+    const week = mode.news === "week";
+    const items = links.filter((l) => l.kind === "뉴스" && (!week || inWeek(l.date, w)))
+      .sort((a, b) => b.echoed - a.echoed || b.importance - a.importance || (b.date ?? "").localeCompare(a.date ?? ""))
+      .slice(0, week ? 12 : 16);
+    $("news").innerHTML = items.length
+      ? items.map((n) => `<li><span class="tag">${stars(n.importance)}</span><span class="body"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>${n.echoed ? ` <span class="tag echo">대화에서도</span>` : ""}<span class="sub">${esc(n.reason)}</span></span></li>`).join("")
+      : `<li class="empty">${week ? `${weekName(w)} 뉴스는 아직 없어요. GeekNews Weekly는 지난주 뉴스를 다음 주에 보내요. [전체]에서 볼 수 있어요.` : "아직 고른 뉴스가 없어요."}</li>`;
   }
 
   // ---------- 루머 채점표 ----------

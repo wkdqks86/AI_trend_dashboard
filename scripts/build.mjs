@@ -142,6 +142,9 @@ const links = linkRows
     date: date(p["날짜"]),
     reason: clean(text(p["추천 이유"])),
     featured: check(p["대시보드 노출"]),
+    source: sel(p["출처"]),
+    echoed: check(p["방에서도 언급"]),
+    keywords: multi(p["키워드"]),
   }));
 
 const keywordCounts = kwRows

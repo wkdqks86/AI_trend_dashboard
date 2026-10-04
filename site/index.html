@@ -7,7 +7,7 @@
   <meta name="description" content="AI 실무 커뮤니티에서 건져 올린 신호와 판단을 기록하는 주간 관측보">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=20261004-metrics-v1.2">
+  <link rel="stylesheet" href="style.css?v=20261004-editorial-v1.4">
 </head>
 <body>
 <a class="skip-link" href="#briefing-section">브리핑으로 건너뛰기</a>
@@ -32,8 +32,8 @@
   </header>
   <nav class="section-nav" aria-label="관측보 목차"><a href="#briefing-section">브리핑</a><a href="#core-section">핵심 기록</a><a href="#flow-section">흐름 관측</a><a href="#judgment-section">판단 추적</a><a href="#land-section">도구 메모</a><a href="#library-section">자료실</a></nav>
   <div class="newspaper">
-    <section class="front-page" id="briefing-section" aria-labelledby="h-brief">
-      <div class="briefing"><div class="section-caption"><span>01 / THE BRIEF</span><span id="briefingPeriod"></span></div><h2 id="h-brief">이번 주, 기억할 세 가지</h2><ol id="briefing"></ol></div>
+    <section class="front-page editorial-front" id="briefing-section" aria-labelledby="h-brief">
+      <div class="briefing"><div class="section-caption"><span>01 / THE BRIEF</span><span id="briefingPeriod"></span></div><h2 id="h-brief">이번 주, 기억할 세 가지</h2><div id="briefing" class="brief-signals"></div></div>
       <aside class="numbers-desk"><p class="section-caption">BY THE NUMBERS</p><section class="metrics" id="metrics" aria-label="기록 집계"></section><p class="hint">커뮤니티 정리 기록 기준</p></aside>
     </section>
     <section class="sheet-section" id="core-section" aria-labelledby="h-core">
@@ -51,8 +51,8 @@
     </section>
     <section class="sheet-section" id="judgment-section" aria-labelledby="h-judgment">
       <div class="section-caption"><span>04 / THE FOLLOW-UP</span><span>결론보다, 바뀐 이유를 기록하기</span></div><h2 id="h-judgment">판단 추적</h2>
-      <div class="grid-2">
-        <section class="desk" aria-labelledby="h-flip"><div class="desk-heading"><h3 id="h-flip">뒤집힌 판단</h3><span class="segs" id="tg-flips"></span></div><div id="flipFilter"></div><div id="flips"></div></section>
+      <div class="judgment-editorial">
+        <section class="desk" aria-labelledby="h-flip"><div class="desk-heading"><h3 id="h-flip">판단이 바뀐 흐름</h3><span class="segs" id="tg-flips"></span></div><div id="flipFilter"></div><div id="flips" class="change-grid"></div><p class="hint">후속 기록 연결은 이전 평가가 틀렸다는 뜻은 아닙니다.</p></section>
         <section class="desk" aria-labelledby="h-rumor"><div class="desk-heading"><h3 id="h-rumor">루머 채점표</h3><span class="segs" id="tg-rumors"></span></div><p id="rumorSummary" class="muted small"></p><ul id="rumors" class="rows"></ul><p class="hint">공식 사실 검증이 아닌, 정리 기록에 저장된 판정입니다.</p></section>
       </div>
     </section>
@@ -62,11 +62,13 @@
       <div class="desk-heading video-heading"><h3 id="h-video">추천 영상</h3><span class="segs" id="tg-videos"></span></div><div id="videos" class="videos"></div>
       <details class="video-more" id="videoMoreWrap"><summary>함께 볼 영상 더 보기 <span id="videoRestCount"></span></summary><div id="videoMore"></div></details>
       <section class="repo-desk" aria-labelledby="h-git"><div class="desk-heading"><h3 id="h-git">쓸 만한 GitHub 자료</h3><span class="segs" id="tg-repos"></span></div><ul id="repos" class="rows repo-list"></ul></section>
+      <section class="repo-desk news-desk" aria-labelledby="h-news"><div class="desk-heading"><h3 id="h-news">뉴스 레이더</h3><span class="segs" id="tg-news"></span></div><p class="section-note">GeekNews Weekly에서 커뮤니티 관심사와 맞닿은 글만 골랐습니다. <span class="tag echo">대화에서도</span> 표시는 같은 시기 커뮤니티에서도 다룬 주제입니다.</p><ul id="news" class="rows repo-list"></ul></section>
     </section>
     <footer class="foot"><div><p class="footer-brand">AI WEEKLY / 주간 AI 관측보</p><p>AI 실무 커뮤니티 대화를 요약한 개인 기록입니다.<br>개인을 알아볼 수 있는 정보는 제외하고 실었습니다.</p></div><div><p id="generated"></p><a href="https://songedejoseph.tistory.com/">꿈과 이상 그리고 현실 ↗</a><p class="closing">다음 주에도, 관찰은 계속됩니다.</p></div></footer>
   </div>
 </main>
 <!-- 배포할 때마다 생성되는 최신 data.json을 읽습니다. -->
-<script src="app.js?v=20261004-metrics-v1.2"></script>
+<script src="editorial.js?v=20261004-editorial-v1.4"></script>
+<script src="app.js?v=20261004-editorial-v1.4"></script>
 </body>
 </html>
