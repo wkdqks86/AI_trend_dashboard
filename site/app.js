@@ -366,15 +366,40 @@
 
   // ---------- 뉴스 레이더 (GeekNews Weekly에서 고른 글) ----------
   // 위클리는 지난 한 주의 뉴스를 다음 주에 보내므로, 날짜는 그 뉴스가 다룬 주의 월요일로 저장되어 있습니다.
+  const NEWS_WEEK_LIMIT = 12;
+  const NEWS_ALL_LIMIT = 16;
   function renderNews(w = weeks[wi]) {
     toggle("tg-news", "news", () => renderNews());
     const week = mode.news === "week";
-    const items = links.filter((l) => l.kind === "뉴스" && (!week || inWeek(l.date, w)))
-      .sort((a, b) => b.echoed - a.echoed || b.importance - a.importance || (b.date ?? "").localeCompare(a.date ?? ""))
-      .slice(0, week ? 12 : 16);
-    $("news").innerHTML = items.length
-      ? items.map((n) => `<li><span class="tag">${stars(n.importance)}</span><span class="body"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>${n.echoed ? ` <span class="tag echo">대화에서도</span>` : ""}<span class="sub">${esc(n.reason)}</span></span></li>`).join("")
-      : `<li class="empty">${week ? `${weekName(w)} 뉴스는 아직 없어요. GeekNews Weekly는 지난주 뉴스를 다음 주에 보내요. [전체]에서 볼 수 있어요.` : "아직 고른 뉴스가 없어요."}</li>`;
+    const allNews = links.filter((l) => l.kind === "뉴스");
+    const items = allNews.filter((n) => !week || inWeek(n.date, w))
+      .sort((a, b) => {
+        const newestFirst = (b.date ?? "").localeCompare(a.date ?? "");
+        // 전체에서는 최근 자료를 먼저, 선택 주에서는 대화와 관련된 자료를 먼저 보여줍니다.
+        if (!week && newestFirst !== 0) return newestFirst;
+        return b.echoed - a.echoed || b.importance - a.importance || newestFirst;
+      })
+      .slice(0, week ? NEWS_WEEK_LIMIT : NEWS_ALL_LIMIT);
+    $("news-status").textContent = week
+      ? `선택 주 뉴스 · ${md(w)}–${md(weekEnd(w))}`
+      : `전체 뉴스 · 최근 날짜순으로 최대 ${NEWS_ALL_LIMIT}개`;
+
+    if (!items.length) {
+      const message = week ? `${weekName(w)}에 정리된 뉴스가 아직 없어요.` : "아직 고른 뉴스가 없어요.";
+      const showRecentButton = week && allNews.length > 0;
+      $("news").innerHTML = `<li class="empty news-empty"><p>${esc(message)}</p>${showRecentButton ? '<button type="button" class="news-more" id="showRecentNews">최근 뉴스 보기 →</button>' : ""}</li>`;
+      if (showRecentButton) {
+        // 뉴스만 전체 보기로 바꿉니다. 다른 칸과 상단의 선택 주차는 그대로 유지합니다.
+        $("showRecentNews").onclick = () => {
+          mode.news = "all";
+          renderNews(w);
+          // 누른 버튼이 사라지므로, 바뀐 '전체' 버튼으로 키보드 초점을 옮깁니다.
+          $("tg-news").querySelector('[data-m="all"]').focus({ preventScroll: true });
+        };
+      }
+      return;
+    }
+    $("news").innerHTML = items.map((n) => `<li><span class="tag">${stars(n.importance)}</span><span class="body"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>${n.echoed ? ` <span class="tag echo">대화에서도</span>` : ""}<span class="sub">${esc(n.reason)}</span></span></li>`).join("");
   }
 
   // ---------- 루머 채점표 ----------

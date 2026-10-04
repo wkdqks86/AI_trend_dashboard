@@ -470,8 +470,54 @@ button.metric:hover .num {
   color:var(--ok)
 }
 
-.news-desk .section-note .tag {
+.news-desk .tag {
+  font-size:11px;
   vertical-align:1px
+}
+
+/* 뉴스에만 적용해 다른 칸의 글자 크기와 배치를 유지합니다. */
+.news-desk .rows .sub {
+  font-size:13px;
+  line-height:1.8;
+  color:var(--text-2);
+  word-break:keep-all;
+  overflow-wrap:anywhere
+}
+
+.news-desk .news-status {
+  font-size:12px;
+  color:var(--text-2)
+}
+
+.news-desk .news-empty {
+  display:block;
+  grid-column:1 / -1;
+  font-size:13px
+}
+
+.news-empty p {
+  margin:0 0 10px
+}
+
+.news-more {
+  border:0;
+  border-bottom:1px solid currentColor;
+  background:transparent;
+  color:var(--accent);
+  font:inherit;
+  padding:5px 0;
+  cursor:pointer
+}
+
+.news-more:focus-visible {
+  outline:2px solid var(--accent);
+  outline-offset:4px
+}
+
+@media (max-width:720px) {
+  .news-desk .rows .sub {
+    font-size:12px
+  }
 }
 
 .icard h3 {
