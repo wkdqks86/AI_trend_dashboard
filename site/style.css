@@ -46,7 +46,7 @@
 
 html {
   scroll-behavior:smooth;
-  scroll-padding-top:24px
+  scroll-padding-top:104px
 }
 
 body {
@@ -99,7 +99,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible,
   position:fixed;
   top:-80px;
   left:20px;
-  z-index:20;
+  z-index:60;
   padding:12px;
   background:var(--paper);
   color:var(--text)
@@ -187,6 +187,14 @@ h1 {
   text-align:right;
   margin:0 0 8px;
   line-height:1.8
+}
+
+.sticky-bar {
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:var(--bg);
+  border-bottom:1px solid var(--outer-line)
 }
 
 .issue-bar {
@@ -1048,7 +1056,11 @@ button.metric:hover .num {
 
 /* 작은 화면에서는 열을 억지로 좁히지 않고, 읽는 순서대로 한 줄씩 쌓습니다. */
 @media(max-width:720px) {
-  .wrap {
+  html {
+  scroll-padding-top:132px
+}
+
+.wrap {
   padding:0 16px 30px
 }
 

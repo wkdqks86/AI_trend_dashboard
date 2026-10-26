@@ -7,7 +7,7 @@
   <meta name="description" content="AI 실무 커뮤니티에서 건져 올린 신호와 판단을 기록하는 주간 관측보">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=20261004-news-v1.5">
+  <link rel="stylesheet" href="style.css?v=20261026-sticky-v1.6">
 </head>
 <body>
 <a class="skip-link" href="#briefing-section">브리핑으로 건너뛰기</a>
@@ -21,6 +21,8 @@
       <div><p class="brand-en">AI WEEKLY <span>관찰 · 기록 · 다시 생각하기</span></p><h1>주간 AI 관측보<span class="title-dot">.</span></h1></div>
       <p class="masthead-note">실무 커뮤니티에서 건져 올린<br>신호와 판단<span id="updatedAt" class="updated-at"></span></p>
     </div>
+  </header>
+  <div class="sticky-bar">
     <div class="issue-bar">
       <p id="weekLabel" aria-live="polite">불러오는 중…</p><span id="issueState" class="issue-state"></span>
       <nav class="weeknav" aria-label="주차 이동">
@@ -29,8 +31,8 @@
         <button id="nextWeek" aria-label="다음 주">→</button>
       </nav>
     </div>
-  </header>
-  <nav class="section-nav" aria-label="관측보 목차"><a href="#briefing-section">브리핑</a><a href="#core-section">핵심 기록</a><a href="#flow-section">흐름 관측</a><a href="#judgment-section">판단 추적</a><a href="#land-section">도구 메모</a><a href="#library-section">자료실</a></nav>
+    <nav class="section-nav" aria-label="관측보 목차"><a href="#briefing-section">브리핑</a><a href="#core-section">핵심 기록</a><a href="#flow-section">흐름 관측</a><a href="#judgment-section">판단 추적</a><a href="#land-section">도구 메모</a><a href="#library-section">자료실</a></nav>
+  </div>
   <div class="newspaper">
     <section class="front-page editorial-front" id="briefing-section" aria-labelledby="h-brief">
       <div class="briefing"><div class="section-caption"><span>01 / THE BRIEF</span><span id="briefingPeriod"></span></div><h2 id="h-brief">이번 주, 기억할 세 가지</h2><div id="briefing" class="brief-signals"></div></div>
